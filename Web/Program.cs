@@ -10,6 +10,7 @@ builder.Services.AddSwaggerGen();
 
 // Add WaterJugModule dependencies
 builder.Services.AddWaterJugModule(); // This registers IWaterJugService with its implementation
+builder.Services.AddMemoryCache();
 
 var app = builder.Build();
 

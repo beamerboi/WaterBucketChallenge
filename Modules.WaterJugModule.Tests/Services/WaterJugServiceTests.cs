@@ -2,16 +2,28 @@
 using System;
 using System.Collections.Generic;
 using Core.Domain;
+using Microsoft.Extensions.Caching.Memory;
+using Moq;
 
 namespace Modules.WaterJugModule.Tests.Services
 {
     public class WaterJugServiceTests
     {
         private readonly WaterJugService _waterJugService;
+        private readonly Mock<IMemoryCache> _memoryCacheMock;
 
         public WaterJugServiceTests()
         {
-            _waterJugService = new WaterJugService();
+            // Create a mock for IMemoryCache
+            _memoryCacheMock = new Mock<IMemoryCache>();
+
+            // Setup the mock to always return null for simplicity (no cache hits in tests)
+            _memoryCacheMock
+                .Setup(x => x.TryGetValue(It.IsAny<object>(), out It.Ref<object>.IsAny))
+                .Returns(false);
+
+            // Pass the mock to WaterJugService
+            _waterJugService = new WaterJugService(_memoryCacheMock.Object);
         }
 
         [Fact]
@@ -29,7 +41,7 @@ namespace Modules.WaterJugModule.Tests.Services
             Assert.NotNull(result);
             Assert.NotEmpty(result);
             Assert.Equal(4, result.Last().BucketY); // Final state should have target amount in one of the buckets
-            Assert.All(result, state => 
+            Assert.All(result, state =>
             {
                 Assert.InRange(state.BucketX, 0, bucketX); // X bucket should never exceed its capacity
                 Assert.InRange(state.BucketY, 0, bucketY); // Y bucket should never exceed its capacity
@@ -51,7 +63,7 @@ namespace Modules.WaterJugModule.Tests.Services
             Assert.True(result.Last().BucketX == z || result.Last().BucketY == z);
             Assert.Equal("Solved", result.Last().Status);
             Assert.Equal(result.Count, result.Last().Step);
-            Assert.All(result, state => 
+            Assert.All(result, state =>
             {
                 Assert.True(state.Step > 0 && state.Step <= result.Count);
                 if (state != result.Last())

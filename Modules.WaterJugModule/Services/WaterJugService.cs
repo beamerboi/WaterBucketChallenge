@@ -5,13 +5,31 @@ using System.Text;
 using System.Threading.Tasks;
 using Core.Domain;
 using Core.Interfaces;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Modules.WaterJugModule.Services
 {
     public class WaterJugService : IWaterJugService
     {
+        private readonly IMemoryCache _cache;
+
+        public WaterJugService(IMemoryCache cache)
+        {
+            _cache = cache;
+        }
+
         public List<BucketState> Solve(int x, int y, int z)
         {
+            // Create a unique cache key for the given inputs
+            string cacheKey = $"{x}-{y}-{z}";
+
+            // Check if the result is already cached
+            if (_cache.TryGetValue(cacheKey, out List<BucketState> cachedResult))
+            {
+                return cachedResult;
+            }
+
+            // Validate inputs
             if (z > Math.Max(x, y) || z % Gcd(x, y) != 0)
                 throw new InvalidOperationException("No solution possible");
 
@@ -31,6 +49,9 @@ namespace Modules.WaterJugModule.Services
                     {
                         currSteps[^1].Status = "Solved";
                     }
+
+                    // Cache the result for 10 minutes
+                    _cache.Set(cacheKey, currSteps, TimeSpan.FromMinutes(10));
                     return currSteps;
                 }
 
