@@ -80,6 +80,7 @@ namespace Modules.WaterJugModule.Services
 
         private IEnumerable<(int, int, string)> GetNextStates(int currX, int currY, int maxX, int maxY)
         {
+            // Return all possible transitions from the current state
             return new List<(int, int, string)>
             {
                 (maxX, currY, "Fill Bucket X"),
@@ -91,6 +92,7 @@ namespace Modules.WaterJugModule.Services
             };
         }
 
+        // Compute the GCD using the Euclidean algorithm
         private int Gcd(int a, int b) => b == 0 ? a : Gcd(b, a % b);
     }
 }
