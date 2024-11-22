@@ -9,22 +9,15 @@ using Microsoft.Extensions.Caching.Memory;
 
 namespace Modules.WaterJugModule.Services
 {
-    public class WaterJugService : IWaterJugService
+    public class WaterJugService(IMemoryCache cache) : IWaterJugService
     {
-        private readonly IMemoryCache _cache;
-
-        public WaterJugService(IMemoryCache cache)
-        {
-            _cache = cache;
-        }
-
-        public List<BucketState> Solve(int x, int y, int z)
+        public List<BucketState>? Solve(int x, int y, int z)
         {
             // Create a unique cache key for the given inputs
             string cacheKey = $"{x}-{y}-{z}";
 
             // Check if the result is already cached
-            if (_cache.TryGetValue(cacheKey, out List<BucketState> cachedResult))
+            if (cache.TryGetValue(cacheKey, out List<BucketState>? cachedResult))
             {
                 return cachedResult;
             }
@@ -36,7 +29,7 @@ namespace Modules.WaterJugModule.Services
             if (z > Math.Max(x, y) || z % Gcd(x, y) != 0)
                 throw new InvalidOperationException("No solution possible");
 
-            var queue = new Queue<(int, int, List<BucketState>)>();
+            var queue = new Queue<(int, int, List<BucketState>?)>();
             var visited = new HashSet<(int, int)>();
 
             queue.Enqueue((0, 0, new List<BucketState>()));
@@ -49,34 +42,32 @@ namespace Modules.WaterJugModule.Services
                 // Return if the target is reached in either bucket
                 if (currX == z || currY == z)
                 {
-                    if (currSteps.Any())
+                    if (currSteps != null && currSteps.Any())
                     {
                         currSteps[^1].Status = "Solved";
                     }
 
                     // Cache the result for 10 minutes
-                    _cache.Set(cacheKey, currSteps, TimeSpan.FromMinutes(10));
+                    cache.Set(cacheKey, currSteps, TimeSpan.FromMinutes(10));
                     return currSteps;
                 }
 
                 // Generate and explore next states
                 foreach (var (nextX, nextY, action) in GetNextStates(currX, currY, x, y))
                 {
-                    if (!visited.Contains((nextX, nextY)))
+                    if (!visited.Add((nextX, nextY))) continue;
+                    if (currSteps == null) continue;
+                    var newSteps = new List<BucketState>(currSteps)
                     {
-                        visited.Add((nextX, nextY));
-                        var newSteps = new List<BucketState>(currSteps)
+                        new BucketState
                         {
-                            new BucketState
-                            {
-                                Step = currSteps.Count + 1,
-                                BucketX = nextX,
-                                BucketY = nextY,
-                                Action = action
-                            }
-                        };
-                        queue.Enqueue((nextX, nextY, newSteps));
-                    }
+                            Step = currSteps.Count + 1,
+                            BucketX = nextX,
+                            BucketY = nextY,
+                            Action = action
+                        }
+                    };
+                    queue.Enqueue((nextX, nextY, newSteps));
                 }
             }
 

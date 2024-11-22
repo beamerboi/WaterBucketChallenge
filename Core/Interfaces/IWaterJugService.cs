@@ -9,6 +9,6 @@ namespace Core.Interfaces
 {
     public interface IWaterJugService
     {
-        List<BucketState> Solve(int x, int y, int z);
+        List<BucketState>? Solve(int x, int y, int z);
     }
 }
