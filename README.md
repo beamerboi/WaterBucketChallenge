@@ -20,6 +20,7 @@ Goal: Measure exactly Z liters of water using only these jugs.
 ### Prerequisites
 - [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
 - Any IDE (Visual Studio 2022 or VS Code recommended)
+- [Docker](https://www.docker.com/get-started)
 
 ### Run Locally
 1. Clone the repository:
@@ -28,7 +29,7 @@ Goal: Measure exactly Z liters of water using only these jugs.
    ```
 2. Navigate to the project directory:
    ```bash
-   cd water-jug-challenge-api
+   cd WaterBucketChallenge
    ```
 3. Restore dependencies:
    ```bash
@@ -43,19 +44,45 @@ Goal: Measure exactly Z liters of water using only these jugs.
    dotnet run
    ```
 
+### Run with Docker
+1. Build the Docker image:
+   ```bash
+   docker build -t water-jug-challenge-api .
+   ```
+2. Run the Docker container:
+   ```bash
+   docker run -p 32768:32768 water-jug-challenge-api
+   ```
+
+### Run With Visual Studio 2022
+1. Open the solution using VS 2022.
+2. Start the service using IIS.
+
 ## 📡 API Endpoints
 
-### POST /api/waterjug/solve
+### POST /WaterJug/solve
+- **URI**: `/WaterJug/solve`
+- **Method**: POST
 - **Description**: Solves the Water Jug Riddle for given jug capacities and target volume.
 - **Request Parameters**:
   - `jugXCapacity` (int): Capacity of Jug X.
   - `jugYCapacity` (int): Capacity of Jug Y.
   - `targetVolume` (int): Desired volume to measure.
-- **Example Request**:
+
+- **Request Example**:
   ```http
-  POST /api/waterjug/solve?jugXCapacity=3&jugYCapacity=5&targetVolume=4
+  POST /WaterJug/solve
   ```
-- **Example Response**:
+- **Example of JSON request body**:
+```json
+  {
+      "XCapacity": 3,
+      "YCapacity": 5,
+      "ZAmountWanted": 4
+  }
+```
+
+- **Response Format**:
   ```json
   {
     "solution": [
@@ -104,6 +131,10 @@ Goal: Measure exactly Z liters of water using only these jugs.
     ]
   }
   ```
+- **Status Codes**:
+  - `200 OK`: Solution found and returned.
+  - `400 Bad Request`: Invalid input parameters.
+  - `500 Internal Server Error`: An error occurred while processing the request.
 
 ## 🧠 Algorithm Explanation
 
@@ -123,4 +154,4 @@ The Water Jug Challenge is solved using the Breadth-First Search (BFS) algorithm
   dotnet test
   ```
 
-
+*The project was created for Chicks Gold interview*
