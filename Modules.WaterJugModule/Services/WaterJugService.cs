@@ -29,7 +29,10 @@ namespace Modules.WaterJugModule.Services
                 return cachedResult;
             }
 
-            // Validate inputs
+            if (z < 0 || x < 0 || y < 0)
+                throw new InvalidOperationException("Invalid input values");
+
+            // Ensure the problem is solvable: z must be less than the largest bucket and divisible by GCD(x, y)
             if (z > Math.Max(x, y) || z % Gcd(x, y) != 0)
                 throw new InvalidOperationException("No solution possible");
 
@@ -43,6 +46,7 @@ namespace Modules.WaterJugModule.Services
             {
                 var (currX, currY, currSteps) = queue.Dequeue();
 
+                // Return if the target is reached in either bucket
                 if (currX == z || currY == z)
                 {
                     if (currSteps.Any())
@@ -55,6 +59,7 @@ namespace Modules.WaterJugModule.Services
                     return currSteps;
                 }
 
+                // Generate and explore next states
                 foreach (var (nextX, nextY, action) in GetNextStates(currX, currY, x, y))
                 {
                     if (!visited.Contains((nextX, nextY)))
